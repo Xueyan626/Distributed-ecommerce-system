@@ -1,0 +1,4 @@
+rootProject.name = 'storeapplication'
+include("bank")
+include("email")
+include("deliveryco")

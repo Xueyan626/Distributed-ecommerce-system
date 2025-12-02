@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  rabbit:
+    image: rabbitmq:3.13-management
+    container_name: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - PROXY_TARGET=http://host.docker.internal:8080
+    volumes:
+      # Mount source code for hot reload in development
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    stdin_open: true
+    tty: true
+    depends_on:
+      - rabbit
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  rabbit-data:
